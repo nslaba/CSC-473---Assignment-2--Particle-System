@@ -21,8 +21,9 @@
 
 //Include the ParticleSystem class
 #include "ParticleSystem.h"
+#include "HermiteSpline.h"
 
-
+#include "ParticleSimulator.h"
 #include "ObjectPathSimulator.h"
 
 //#include <util/jama/tnt_stopwatch.h>
@@ -98,7 +99,10 @@ void MakeScene(void)
 	ParticleSystem* partSys = new ParticleSystem("partSys");
 	success = GlobalResourceManager::use()->addSystem(partSys, true);
 	assert(success);
-	
+
+	ParticleSimulator* partSim = new ParticleSimulator("partSim");
+	success = GlobalResourceManager::use()->addSimulator(partSim, true);
+	assert(success);
 
 
 	// make sure it was registered successfully

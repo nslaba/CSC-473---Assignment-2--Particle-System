@@ -128,6 +128,7 @@
     <ClInclude Include="ParticleSimulator.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="Spring.h" />
     <ClInclude Include="ThreeDModel.h" />
   </ItemGroup>
   <ItemGroup>

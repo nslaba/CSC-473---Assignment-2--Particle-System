@@ -71,7 +71,7 @@ int ParticleSystem::command(int argc, myCONST_SPEC char** argv)
 	}
 	else if (strcmp(argv[0], "dim") == 0)
 	{
-		int numParticles = (int)argv[1];
+		int numParticles = atoi(argv[1]);
 		particlesInit(numParticles);
 		return TCL_OK;
 
@@ -82,7 +82,7 @@ int ParticleSystem::command(int argc, myCONST_SPEC char** argv)
 	{ //system <sys_name> particle <index> <mass> <x y z vx vy vz>
 		if (argc == 9) {
 			Particle particle = Particle();
-			int index = (int)argv[1];
+			int index = atoi(argv[1]);
 			// mass
 			particle.mass = std::stof(argv[2]);
 			// position
@@ -90,7 +90,7 @@ int ParticleSystem::command(int argc, myCONST_SPEC char** argv)
 			// velocity
 			particle.velocity = glm::vec3{ std::stof(argv[6]), std::stof(argv[7]), std::stof(argv[8]) };
 
-			particles.push_back(particle);
+			particles[index]=particle;
 		}
 		else 
 		{
@@ -122,27 +122,25 @@ int ParticleSystem::command(int argc, myCONST_SPEC char** argv)
 }	// ParticleSystem::command
 
 
-
-void ParticleSystem::display(GLenum mode = GL_RENDER)
+// System draws the particles
+void ParticleSystem::display(GLenum mode)
 {
 	glEnable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-
-	glLineWidth(0.5);
-	glBegin(GL_LINE_STRIP);
-
 	for (int i = 0; i < particles.size(); i++)
 	{
+		glPushMatrix();
+
+		glTranslated(particles[i].position.x, particles[i].position.y, particles[i].position.z);
 		// Draw a particle at its given location
-		//glVertex3f(nextPoint.point.x, nextPoint.point.y, nextPoint.point.z);
+		glutSolidSphere(0.1, 5, 5);
+
+		glPopMatrix();
 	}
 	
-	glEnd();
-
-
 
 	glColor3f(0.3, 0.7, 0.1);
 

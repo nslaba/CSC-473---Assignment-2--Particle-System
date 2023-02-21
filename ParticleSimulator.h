@@ -9,16 +9,27 @@
 #include "ParticleSystem.h"
 #include <string>
 #include "BaseSimulator.h"
+#include "Spring.h"
+#include <glm/geometric.hpp>
 class ParticleSimulator :
 	public BaseSimulator
 {
 public:
-	ParticleSimulator(const std::string& name, ParticleSystem* target);
+	ParticleSimulator(const std::string& name);
+
+	//Integrators
+	void euler(double timeStep);
+	void symplectic(double timeStep);
+	void verlet(double timeStep);
 
 	int command(int argc, myCONST_SPEC char** argv);
 	int step(double time);
 
+	void display(GLenum mode = GL_RENDER);
+
 protected:
-	ParticleSystem* particleSys;
+	ParticleSystem* particles;
+	std::vector <Spring> springs;
+	double gravity;
 };
 

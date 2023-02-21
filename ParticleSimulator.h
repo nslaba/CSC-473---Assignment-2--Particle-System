@@ -18,9 +18,9 @@ public:
 	ParticleSimulator(const std::string& name);
 
 	//Integrators
-	void euler(double timeStep);
-	void symplectic(double timeStep);
-	void verlet(double timeStep);
+	void integrateEuler(double time);
+	void integrateSymplectic(double timeStep);
+	void integrateVerlet(double timeStep);
 
 	int command(int argc, myCONST_SPEC char** argv);
 	int step(double time);
@@ -31,5 +31,9 @@ protected:
 	ParticleSystem* particles;
 	std::vector <Spring> springs;
 	double gravity;
+	double timeStep;
+	bool euler;
+	bool symplectic;
+	bool verlet;
 };
 

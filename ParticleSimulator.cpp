@@ -12,15 +12,21 @@ ParticleSimulator::ParticleSimulator(const std::string& name) :
 
 
 //Integrators
-void ParticleSimulator::euler(double timeStep)
+void ParticleSimulator::integrateEuler(double time)
+{
+	for (const auto& particle : particles->particles)
+	{
+		if (!particle.fixed)
+		{
+			//particle.position += timeStep * particle.velocity;
+		}
+	}
+}
+void ParticleSimulator::integrateSymplectic(double timeStep)
 {
 
 }
-void ParticleSimulator::symplectic(double timeStep)
-{
-
-}
-void ParticleSimulator::verlet(double timeStep)
+void ParticleSimulator::integrateVerlet(double timeStep)
 {
 
 }
@@ -92,18 +98,21 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 	else if (strcmp(argv[0], "integration")==0)
 	{ // simulator <sim_name> integration <euler|symplectic|verlet> <time step>
 		if (argc == 3) {
-			double timeStep = atof(argv[2]);
+			timeStep = atof(argv[2]);
 			if (strcmp(argv[1], "euler") == 0)
 			{
-				euler(timeStep);
+				euler= true;
+				symplectic, verlet = false;
 			}
 			else if (strcmp(argv[1], "symplectic") == 0)
 			{
-				symplectic(timeStep);
+				symplectic= true;
+				euler, verlet = false;
 			}
 			else if (strcmp(argv[1], "verlet") == 0)
 			{
-				verlet(timeStep);
+				verlet=true;
+				euler, symplectic = false;
 			}
 		}
 		else {
@@ -151,7 +160,18 @@ int ParticleSimulator::step(double time)
 {
 	/* STEP 1: Get the correct distance travelled based on acceleration*/
 
-	
+	if (euler)
+	{
+		integrateEuler(time);
+	}
+	else if (symplectic)
+	{
+
+	}
+	else if (verlet)
+	{
+
+	}
 
 
 	return 0;

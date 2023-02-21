@@ -1,0 +1,18 @@
+﻿cl : command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
+  ThreeDModel.cpp
+  BaseSystem.cpp
+  ResourceManager.cpp
+  ParticleSystem.cpp
+C:\Users\slaba\Desktop\uvic degree\comp sci\CSC 473\Assignment 2\anim\ParticleSystem.cpp(126,44): error C2572: 'ParticleSystem::display': redefinition of default argument: parameter 1
+C:\Users\slaba\Desktop\uvic degree\comp sci\CSC 473\Assignment 2\anim\ParticleSystem.h(35): message : see declaration of 'ParticleSystem::display'
+  ParticleSimulator.cpp
+C:\Users\slaba\Desktop\uvic degree\comp sci\CSC 473\Assignment 2\anim\ParticleSimulator.cpp(10,1): error C2600: 'ParticleSimulator::~ParticleSimulator': cannot define a compiler-generated special member function (must be declared in the class first)
+  ObjectPathSimulator.cpp
+  myScene.cpp
+  HermiteSpline.cpp
+  GlobalResourceManager.cpp
+  BaseSimulator.cpp
+  BaseObject.cpp
+  animTcl.cpp
+  anim.cpp
+  Generating Code...

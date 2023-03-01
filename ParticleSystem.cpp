@@ -20,7 +20,7 @@ void ParticleSystem::particlesInit(int numParticles)
 	for (int i = 0; i < numParticles; i++)
 	{
 		Particle particle = Particle();
-		particle.position = glm::vec3{ 0.0f };
+		particle.positionOld = glm::vec3{ 0.0f };
 		particles.push_back(particle);
 	}
 }
@@ -40,7 +40,7 @@ void ParticleSystem::setVelocity(int index, glm::vec3 velocity)
 
 void ParticleSystem::setPosition(int index, glm::vec3 position)
 {
-	particles[index].position = position;
+	particles[index].positionOld = position;
 }
 
 
@@ -56,7 +56,7 @@ glm::vec3 ParticleSystem::getVelocity(int index)
 
 glm::vec3 ParticleSystem::getPosition(int index)
 {
-	return particles[index].position;
+	return particles[index].positionOld;
 }
 
 
@@ -86,7 +86,7 @@ int ParticleSystem::command(int argc, myCONST_SPEC char** argv)
 			// mass
 			particle.mass = std::stof(argv[2]);
 			// position
-			particle.position = glm::vec3{ std::stof(argv[3]), std::stof(argv[4]), std::stof(argv[5]) };
+			particle.positionOld = glm::vec3{ std::stof(argv[3]), std::stof(argv[4]), std::stof(argv[5]) };
 			// velocity
 			particle.velocity = glm::vec3{ std::stof(argv[6]), std::stof(argv[7]), std::stof(argv[8]) };
 
@@ -134,11 +134,13 @@ void ParticleSystem::display(GLenum mode)
 	{
 		glPushMatrix();
 
-		glTranslated(particles[i].position.x, particles[i].position.y, particles[i].position.z);
+		glTranslated(particles[i].positionOld.x, particles[i].positionOld.y, particles[i].positionOld.z);
 		// Draw a particle at its given location
 		glutSolidSphere(0.1, 5, 5);
 
 		glPopMatrix();
+		//animTcl::OutputMessage("old position of particles being drawn in system: ");
+		//animTcl::OutputMessage("%f, %f, %f", particles[i].positionOld.x, particles[i].positionOld.y, particles[i].positionOld.z);
 	}
 	
 

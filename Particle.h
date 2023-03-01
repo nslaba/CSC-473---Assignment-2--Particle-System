@@ -4,9 +4,9 @@
 #include <vector>
 struct Particle
 {
-	bool fixed;
+	bool fixed=false;
 	double mass;
-	glm::dvec3 position, velocity;
+	glm::dvec3 positionNew, positionOld, velocity;
 	
 };
 

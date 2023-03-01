@@ -16,11 +16,15 @@ class ParticleSimulator :
 {
 public:
 	ParticleSimulator(const std::string& name);
+	int init(double time) 
+	{
+		return 0;
+	}
 
-	//Integrators
-	void integrateEuler(double time);
-	void integrateSymplectic(double timeStep);
-	void integrateVerlet(double timeStep);
+	// Integrators
+	void integrateEuler(double dt);
+	void integrateSymplectic(double accuracyStep);
+	void integrateVerlet(double accuracyStep);
 
 	int command(int argc, myCONST_SPEC char** argv);
 	int step(double time);
@@ -30,10 +34,10 @@ public:
 protected:
 	ParticleSystem* particles;
 	std::vector <Spring> springs;
-	double gravity;
-	double timeStep;
-	bool euler;
-	bool symplectic;
-	bool verlet;
+	double gravity=0;
+	double accuracyStep=0;
+	bool euler=false;
+	bool symplectic=false;
+	bool verlet=false;
 };
 

@@ -2,6 +2,8 @@
 #include "anim.h"
 #include "animTcl.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/geometric.hpp>
+#include <glm/gtx/scalar_multiplication.hpp>
 
 ParticleSimulator::ParticleSimulator(const std::string& name) :
 	BaseSimulator(name)
@@ -12,21 +14,42 @@ ParticleSimulator::ParticleSimulator(const std::string& name) :
 
 
 //Integrators
-void ParticleSimulator::integrateEuler(double time)
+void ParticleSimulator::integrateEuler(double dt)
 {
-	for (const auto& particle : particles->particles)
+
+	//for each particle
+		
+	for (auto& particle : particles->particles)
 	{
 		if (!particle.fixed)
 		{
-			//particle.position += timeStep * particle.velocity;
+		//		update acceleration based on force over mass
+		
+		
+				
+		//		update new position based on old velocity * dt
+			particle.velocity = glm::dvec3(2.0, 2.0, 2.0);
+
+			particle.positionNew = particle.positionOld + dt * particle.velocity;
+			animTcl::OutputMessage("before old is updated in euler");
+			animTcl::OutputMessage("%f, %f, %f", particle.positionOld.x, particle.positionOld.y, particle.positionOld.z);
+
+			animTcl::OutputMessage("velocity is");
+			animTcl::OutputMessage("%f, %f, %f", particle.velocity.x, particle.velocity.y, particle.velocity.z);
+		//		update new velocity based on old position + acceleration times dt
+
+			particle.positionOld = particle.positionNew;
+			animTcl::OutputMessage("after old is updated in euler");
+			animTcl::OutputMessage("%f, %f, %f", particle.positionOld.x, particle.positionOld.y, particle.positionOld.z);
+				
 		}
 	}
 }
-void ParticleSimulator::integrateSymplectic(double timeStep)
+void ParticleSimulator::integrateSymplectic(double accuracyStep)
 {
 
 }
-void ParticleSimulator::integrateVerlet(double timeStep)
+void ParticleSimulator::integrateVerlet(double accuracyStep)
 {
 
 }
@@ -73,7 +96,7 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 			// Account for if restlength is negative
 			if (spring.restlength < 0)
 			{
-				spring.restlength = glm::distance(particles->particles[spring.particleA].position, particles->particles[spring.particleB].position);
+				spring.restlength = glm::distance(particles->particles[spring.particleA].positionOld, particles->particles[spring.particleB].positionOld);
 			}
 
 			// add it to the array
@@ -98,7 +121,7 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 	else if (strcmp(argv[0], "integration")==0)
 	{ // simulator <sim_name> integration <euler|symplectic|verlet> <time step>
 		if (argc == 3) {
-			timeStep = atof(argv[2]);
+			accuracyStep = atof(argv[2]);
 			if (strcmp(argv[1], "euler") == 0)
 			{
 				euler= true;
@@ -154,24 +177,76 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 			return TCL_ERROR;
 		}
 	}
+	glutPostRedisplay();
+	return TCL_OK;
 }
 
 int ParticleSimulator::step(double time)
 {
-	/* STEP 1: Get the correct distance travelled based on acceleration*/
-
-	if (euler)
+	// Compare anim dt (continuity) with given dt (accuracy)
+	if (SIMULATION_TIME_STEP <= accuracyStep) 
 	{
-		integrateEuler(time);
-	}
-	else if (symplectic)
-	{
+		
+		accuracyStep = SIMULATION_TIME_STEP; 
+		// no need of an extra forloop
+		animTcl::OutputMessage("calling euler 0");
 
-	}
-	else if (verlet)
-	{
+		integrateEuler(accuracyStep);
+		
 
+		/* STEP 1:*/
+
+		if (euler)
+		{
+			animTcl::OutputMessage("calling euler 1");
+			integrateEuler(accuracyStep);
+		}
+		else if (symplectic)
+		{
+
+		}
+		else if (verlet)
+		{
+
+		}
 	}
+	else if (accuracyStep < SIMULATION_TIME_STEP) 
+	{
+		// loop through time t = accuracyStep += accuracyStep while accuracyStep < SIMULATION_TIME_STEP
+		double dt = accuracyStep;
+		
+		while (dt <= SIMULATION_TIME_STEP)
+		{
+			//for each particle
+		//		update acceleration based on force over mass
+		//		update new velocity based on old position + acceleration times dt
+		//		update new position based on old velocity * dt
+		// draw
+
+		/* STEP 1:*/
+			integrateEuler(accuracyStep);
+			if (euler)
+			{
+				animTcl::OutputMessage("calling euler 2");
+				integrateEuler(accuracyStep);
+			}
+			else if (symplectic)
+			{
+
+			}
+			else if (verlet)
+			{
+
+			}
+			//update dt
+			dt += accuracyStep;
+		}
+		
+		
+	}
+	// Then update old velocity to new after drawing.
+
+	
 
 
 	return 0;
@@ -192,13 +267,13 @@ void ParticleSimulator::display(GLenum mode)
 	for (const auto& spring: springs)
 	{
 		// Draw a line between two particles
-		glVertex3dv(glm::value_ptr(particles->particles[spring.particleA].position));
-		glVertex3dv(glm::value_ptr(particles->particles[spring.particleB].position));
-		animTcl::OutputMessage("Is loop running?");
-		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleA].position.x, particles->particles[spring.particleA].position.y, particles->particles[spring.particleA].position.z);
-		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleB].position.x, particles->particles[spring.particleB].position.y, particles->particles[spring.particleB].position.z);
+		glVertex3dv(glm::value_ptr(particles->particles[spring.particleA].positionOld));
+		glVertex3dv(glm::value_ptr(particles->particles[spring.particleB].positionOld));
+		/*animTcl::OutputMessage("Is loop running?");
+		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleA].positionOld.x, particles->particles[spring.particleA].positionOld.y, particles->particles[spring.particleA].positionOld.z);
+		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleB].positionOld.x, particles->particles[spring.particleB].positionOld.y, particles->particles[spring.particleB].positionOld.z);
 		animTcl::OutputMessage("indeces are");
-		animTcl::OutputMessage("%d, %d", spring.particleA, spring.particleB);
+		animTcl::OutputMessage("%d, %d", spring.particleA, spring.particleB);*/
 	}
 	glEnd();
 

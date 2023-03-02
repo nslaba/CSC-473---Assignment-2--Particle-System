@@ -1,3 +1,9 @@
 ﻿cl : command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
   ParticleSimulator.cpp
+  Generating Code...
+  Compiling...
+  ParticleSystem.cpp
+  Generating Code...
+  Skipping... (no relevant changes detected)
+  myScene.cpp
   anim.vcxproj -> C:\Users\slaba\Desktop\uvic degree\comp sci\CSC 473\Assignment 2\Build\anim.exe

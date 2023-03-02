@@ -32,9 +32,12 @@ public:
 	void display(GLenum mode = GL_RENDER);
 
 protected:
-	ParticleSystem* particles;
+	ParticleSystem* particleSys;
 	std::vector <Spring> springs;
 	double gravity=0;
+	double kDrag=0;
+	double ksGround=0;
+	double kdGround=0;
 	double accuracyStep=0;
 	bool euler=false;
 	bool symplectic=false;

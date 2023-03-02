@@ -19,29 +19,32 @@ void ParticleSimulator::integrateEuler(double dt)
 
 	//for each particle
 		
-	for (auto& particle : particles->particles)
+	for (auto& particle : particleSys->particles)
 	{
 		if (!particle.fixed)
 		{
-		//		update acceleration based on force over mass
-		
-		
-				
+		//	update acceleration based on force over mass
+			//particle.acceleration = force / particle.mass;
+			particle.force = -kDrag * (particle.velocity) + particle.mass * gravity; // + external force + stiffness and damping for all spring pairs
+			particle.acceleration = particle.force / particle.mass;
+			animTcl::OutputMessage("gravity is: ");
+			animTcl::OutputMessage("%f", gravity);
+			animTcl::OutputMessage("kDrag is");
+			animTcl::OutputMessage("%f", kDrag);
+			animTcl::OutputMessage("old velocity is: ");
+			animTcl::OutputMessage("%f", particle.velocity);
+			animTcl::OutputMessage("acceleration is: ");
+			animTcl::OutputMessage("%f", particle.acceleration);
 		//		update new position based on old velocity * dt
-			particle.velocity = glm::dvec3(2.0, 2.0, 2.0);
+			//using const velocity for now
+			//particle.velocity = glm::dvec3(2.0, 2.0, 2.0);
+			particle.velocity = particle.velocity + dt * particle.acceleration; //giving no reaction. velocity must be zero
 
 			particle.positionNew = particle.positionOld + dt * particle.velocity;
-			animTcl::OutputMessage("before old is updated in euler");
-			animTcl::OutputMessage("%f, %f, %f", particle.positionOld.x, particle.positionOld.y, particle.positionOld.z);
-
-			animTcl::OutputMessage("velocity is");
-			animTcl::OutputMessage("%f, %f, %f", particle.velocity.x, particle.velocity.y, particle.velocity.z);
+			
 		//		update new velocity based on old position + acceleration times dt
-
 			particle.positionOld = particle.positionNew;
-			animTcl::OutputMessage("after old is updated in euler");
-			animTcl::OutputMessage("%f, %f, %f", particle.positionOld.x, particle.positionOld.y, particle.positionOld.z);
-				
+						
 		}
 	}
 }
@@ -70,9 +73,9 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 
 		// Retrieve the correct system & link it to the simulator
 		
-		particles = dynamic_cast<ParticleSystem*>(GlobalResourceManager::use()->getSystem(sysName));
+		particleSys = dynamic_cast<ParticleSystem*>(GlobalResourceManager::use()->getSystem(sysName));
 
-		if (particles == NULL) {
+		if (particleSys == NULL) {
 			animTcl::OutputMessage("System doesn't exist");
 			return TCL_ERROR;
 		}
@@ -89,6 +92,10 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 			Spring spring = Spring();
 			spring.particleA = atoi(argv[1]);
 			spring.particleB = atoi(argv[2]);
+			// Save the spring Id in the existing particles' SpringID list
+			particleSys->particles[spring.particleA].springIDs.push_back(springs.size());
+			particleSys->particles[spring.particleB].springIDs.push_back(springs.size());
+
 			spring.ks = atof(argv[3]);
 			spring.kd = atof(argv[4]);
 			spring.restlength = atof(argv[5]);
@@ -96,7 +103,7 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 			// Account for if restlength is negative
 			if (spring.restlength < 0)
 			{
-				spring.restlength = glm::distance(particles->particles[spring.particleA].positionOld, particles->particles[spring.particleB].positionOld);
+				spring.restlength = glm::distance(particleSys->particles[spring.particleA].positionOld, particleSys->particles[spring.particleB].positionOld);
 			}
 
 			// add it to the array
@@ -111,7 +118,7 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 	else if (strcmp(argv[0], "fix") == 0)
 	{ // simulator <sim_name> fix <index>
 		if (argc == 2) {
-			particles->particles[atoi(argv[1])].fixed = true;
+			particleSys->particles[atoi(argv[1])].fixed = true;
 		}
 		else {
 			animTcl::OutputMessage("wrong amount of arguments");
@@ -147,7 +154,8 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 	{ // simulator <sim_name> ground <ks> <kd>
 		if (argc == 3)
 		{
-
+			ksGround = atof(argv[1]);
+			kdGround = atof(argv[2]);
 		}
 		else
 		{
@@ -170,7 +178,7 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 	{ //simulator <sim_name> drag <kdrag>
 		if (argc == 2)
 		{
-
+			kDrag = atof(argv[1]);
 		}
 		else {
 			animTcl::OutputMessage("wrong amount of arguments");
@@ -189,7 +197,7 @@ int ParticleSimulator::step(double time)
 		
 		accuracyStep = SIMULATION_TIME_STEP; 
 		// no need of an extra forloop
-		animTcl::OutputMessage("calling euler 0");
+		//animTcl::OutputMessage("calling euler 0");
 
 		integrateEuler(accuracyStep);
 		
@@ -198,7 +206,7 @@ int ParticleSimulator::step(double time)
 
 		if (euler)
 		{
-			animTcl::OutputMessage("calling euler 1");
+			//animTcl::OutputMessage("calling euler 1");
 			integrateEuler(accuracyStep);
 		}
 		else if (symplectic)
@@ -227,7 +235,7 @@ int ParticleSimulator::step(double time)
 			integrateEuler(accuracyStep);
 			if (euler)
 			{
-				animTcl::OutputMessage("calling euler 2");
+				//animTcl::OutputMessage("calling euler 2");
 				integrateEuler(accuracyStep);
 			}
 			else if (symplectic)
@@ -267,8 +275,8 @@ void ParticleSimulator::display(GLenum mode)
 	for (const auto& spring: springs)
 	{
 		// Draw a line between two particles
-		glVertex3dv(glm::value_ptr(particles->particles[spring.particleA].positionOld));
-		glVertex3dv(glm::value_ptr(particles->particles[spring.particleB].positionOld));
+		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleA].positionOld));
+		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleB].positionOld));
 		/*animTcl::OutputMessage("Is loop running?");
 		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleA].positionOld.x, particles->particles[spring.particleA].positionOld.y, particles->particles[spring.particleA].positionOld.z);
 		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleB].positionOld.x, particles->particles[spring.particleB].positionOld.y, particles->particles[spring.particleB].positionOld.z);

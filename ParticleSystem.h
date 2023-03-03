@@ -27,6 +27,7 @@ public:
 	glm::vec3 getVelocity(int index);
 	glm::vec3 getPosition(int index);
 
+
 	// The nescessary objects
 	std::vector <Particle> particles;
 

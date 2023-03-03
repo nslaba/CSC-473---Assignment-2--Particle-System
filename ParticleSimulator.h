@@ -21,6 +21,8 @@ public:
 		return 0;
 	}
 
+	void updateSpringForces();
+
 	// Integrators
 	void integrateEuler(double dt);
 	void integrateSymplectic(double accuracyStep);

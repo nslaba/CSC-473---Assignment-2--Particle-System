@@ -13,10 +13,51 @@ ParticleSimulator::ParticleSimulator(const std::string& name) :
 
 
 
+void ParticleSimulator::updateSpringForces()
+{
+
+	//first clear all the forces the particles contain
+	for (auto& particle : particleSys->particles)
+	{
+		particle.force = glm::dvec3{ 0.0 };
+	}
+	// update spring force for all connected particles
+	for (auto& spring : springs)
+	{
+		// save particle A and particle B for clarity of the calculations
+		Particle particleA = particleSys->particles[spring.particleA];
+		Particle& particleB = particleSys->particles[spring.particleB];
+
+
+		// STIFFNESS for particle A
+		particleA.force = -spring.ks
+			* (spring.restlength - glm::length(particleB.positionCur - particleA.positionCur))
+			* glm::normalize(particleB.positionCur - particleA.positionCur);
+		
+		//particleA.force = glm::dvec3{ 3 };
+		/*animTcl::OutputMessage("the stiffness is ");
+		animTcl::OutputMessage("%f", glm::length(particleA.force));*/
+		
+		// DAMPING for particle A
+		//THERE IS AN ERROR WITH VEL SHOULD BE B.VEL - A.VEL, but it works this way?!
+		particleA.force += -spring.kd
+			* glm::dot((particleA.velocity - particleB.velocity), glm::normalize(particleB.positionCur - particleA.positionCur))
+			* glm::normalize(particleB.positionCur - particleA.positionCur);
+		
+	/*	animTcl::OutputMessage("the stiffness and damping are ");
+		animTcl::OutputMessage("%f", glm::length(particleA.force));*/
+		//test
+		//particleA.force /= 1000.0;
+		// STIFFNESS & DAMPING for particle B
+		particleB.force += -particleA.force;
+
+		particleSys->particles[spring.particleA].force += particleA.force;
+	}
+}
+
 //Integrators
 void ParticleSimulator::integrateEuler(double dt)
 {
-
 	//for each particle
 		
 	for (auto& particle : particleSys->particles)
@@ -24,37 +65,69 @@ void ParticleSimulator::integrateEuler(double dt)
 		if (!particle.fixed)
 		{
 		//	update acceleration based on force over mass
-			//particle.acceleration = force / particle.mass;
-			particle.force = -kDrag * (particle.velocity) + particle.mass * gravity; // + external force + stiffness and damping for all spring pairs
-			particle.acceleration = particle.force / particle.mass;
-			animTcl::OutputMessage("gravity is: ");
-			animTcl::OutputMessage("%f", gravity);
-			animTcl::OutputMessage("kDrag is");
-			animTcl::OutputMessage("%f", kDrag);
-			animTcl::OutputMessage("old velocity is: ");
-			animTcl::OutputMessage("%f", particle.velocity);
-			animTcl::OutputMessage("acceleration is: ");
-			animTcl::OutputMessage("%f", particle.acceleration);
-		//		update new position based on old velocity * dt
-			//using const velocity for now
-			//particle.velocity = glm::dvec3(2.0, 2.0, 2.0);
-			particle.velocity = particle.velocity + dt * particle.acceleration; //giving no reaction. velocity must be zero
+			//add the remaining nescessary forces to each particle
+			particle.force += -kDrag * (particle.velocity) + particle.mass * gravity; 
+		
 
-			particle.positionNew = particle.positionOld + dt * particle.velocity;
-			
-		//		update new velocity based on old position + acceleration times dt
-			particle.positionOld = particle.positionNew;
+			particle.acceleration = particle.force / particle.mass;
+
+		//	update new position based on old velocity * dt
+			particle.positionNew = particle.positionCur + dt * particle.velocity;
+
+			particle.velocity = particle.velocity + dt * particle.acceleration; 
+		
 						
 		}
 	}
 }
-void ParticleSimulator::integrateSymplectic(double accuracyStep)
+void ParticleSimulator::integrateSymplectic(double dt)
 {
+	//for each particle
 
+	for (auto& particle : particleSys->particles)
+	{
+		if (!particle.fixed)
+		{
+			//	update acceleration based on force over mass
+				//add the remaining nescessary forces to each particle
+			particle.force += -kDrag * (particle.velocity) + particle.mass * gravity;
+
+			particle.acceleration = particle.force / particle.mass;
+
+			//	update new position based on new velocity * dt
+
+			particle.velocity = particle.velocity + dt * particle.acceleration;
+
+
+			particle.positionNew = particle.positionCur + dt * particle.velocity;
+
+
+		}
+	}
 }
-void ParticleSimulator::integrateVerlet(double accuracyStep)
+void ParticleSimulator::integrateVerlet(double dt)
 {
+	//for each particle
 
+	for (auto& particle : particleSys->particles)
+	{
+		if (!particle.fixed)
+		{
+			//	update acceleration based on force over mass
+				//add the remaining nescessary forces to each particle
+			particle.force += -kDrag * (particle.velocity) + particle.mass * gravity;
+
+			particle.acceleration = particle.force / particle.mass;
+
+			//	update new position 
+
+			particle.positionNew = 2.0*particle.positionCur - particle.positionPrev + particle.acceleration * pow(dt,2);
+
+			particle.velocity =  (particle.positionNew - particle.positionPrev)/ 2.0;
+
+
+		}
+	}
 }
 
 
@@ -92,10 +165,6 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 			Spring spring = Spring();
 			spring.particleA = atoi(argv[1]);
 			spring.particleB = atoi(argv[2]);
-			// Save the spring Id in the existing particles' SpringID list
-			particleSys->particles[spring.particleA].springIDs.push_back(springs.size());
-			particleSys->particles[spring.particleB].springIDs.push_back(springs.size());
-
 			spring.ks = atof(argv[3]);
 			spring.kd = atof(argv[4]);
 			spring.restlength = atof(argv[5]);
@@ -103,7 +172,7 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 			// Account for if restlength is negative
 			if (spring.restlength < 0)
 			{
-				spring.restlength = glm::distance(particleSys->particles[spring.particleA].positionOld, particleSys->particles[spring.particleB].positionOld);
+				spring.restlength = glm::distance(particleSys->particles[spring.particleA].positionCur, particleSys->particles[spring.particleB].positionCur);
 			}
 
 			// add it to the array
@@ -143,6 +212,12 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 			{
 				verlet=true;
 				euler, symplectic = false;
+
+				// update the initial positionPrev for all particles
+				for (auto& particle : particleSys->particles)
+				{
+					particle.positionPrev = particle.positionCur - particle.velocity * accuracyStep;
+				}
 			}
 		}
 		else {
@@ -191,31 +266,41 @@ int ParticleSimulator::command(int argc, myCONST_SPEC char** argv)
 
 int ParticleSimulator::step(double time)
 {
+	//update positions for particles
+	for (auto& particle : particleSys->particles)
+	{
+		particle.positionPrev = particle.positionCur;
+		particle.positionCur = particle.positionNew;	
+	}
+
+	// Update Spring forces
+	updateSpringForces();
+
+	
+
 	// Compare anim dt (continuity) with given dt (accuracy)
 	if (SIMULATION_TIME_STEP <= accuracyStep) 
 	{
 		
 		accuracyStep = SIMULATION_TIME_STEP; 
-		// no need of an extra forloop
-		//animTcl::OutputMessage("calling euler 0");
-
-		integrateEuler(accuracyStep);
-		
+		// no need of an extra forloop	
 
 		/* STEP 1:*/
 
 		if (euler)
 		{
-			//animTcl::OutputMessage("calling euler 1");
+			animTcl::OutputMessage("calling euler 1");
 			integrateEuler(accuracyStep);
 		}
 		else if (symplectic)
 		{
-
+			animTcl::OutputMessage("calling symplectic");
+			integrateSymplectic(accuracyStep);
 		}
 		else if (verlet)
 		{
-
+			animTcl::OutputMessage("calling verlet");
+			integrateVerlet(accuracyStep);
 		}
 	}
 	else if (accuracyStep < SIMULATION_TIME_STEP) 
@@ -232,19 +317,21 @@ int ParticleSimulator::step(double time)
 		// draw
 
 		/* STEP 1:*/
-			integrateEuler(accuracyStep);
+			
 			if (euler)
 			{
-				//animTcl::OutputMessage("calling euler 2");
+				animTcl::OutputMessage("calling euler 2");
 				integrateEuler(accuracyStep);
 			}
 			else if (symplectic)
 			{
-
+				animTcl::OutputMessage("calling symplectic 2");
+				integrateSymplectic(accuracyStep);
 			}
 			else if (verlet)
 			{
-
+				animTcl::OutputMessage("calling verlet 2");
+				integrateVerlet(accuracyStep);
 			}
 			//update dt
 			dt += accuracyStep;
@@ -275,11 +362,11 @@ void ParticleSimulator::display(GLenum mode)
 	for (const auto& spring: springs)
 	{
 		// Draw a line between two particles
-		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleA].positionOld));
-		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleB].positionOld));
+		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleA].positionCur));
+		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleB].positionCur));
 		/*animTcl::OutputMessage("Is loop running?");
-		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleA].positionOld.x, particles->particles[spring.particleA].positionOld.y, particles->particles[spring.particleA].positionOld.z);
-		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleB].positionOld.x, particles->particles[spring.particleB].positionOld.y, particles->particles[spring.particleB].positionOld.z);
+		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleA].positionCur.x, particles->particles[spring.particleA].positionCur.y, particles->particles[spring.particleA].positionCur.z);
+		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleB].positionCur.x, particles->particles[spring.particleB].positionCur.y, particles->particles[spring.particleB].positionCur.z);
 		animTcl::OutputMessage("indeces are");
 		animTcl::OutputMessage("%d, %d", spring.particleA, spring.particleB);*/
 	}

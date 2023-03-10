@@ -61,7 +61,7 @@ void ParticleSimulator::integrateEuler(double dt)
 		{
 		//	update acceleration based on force over mass
 			//add the remaining nescessary forces to each particle
-			particle.force += -kDrag * (particle.velocity) + particle.mass * gravity; 
+			particle.force += -kDrag * (particle.velocity) + glm::dvec3(0.0, particle.mass * gravity, 0.0);
 			// ground collision detection
 				// assuming that ground is zero -> P = (0, 0, 0)
 			if (particle.positionCur[1] <= 0)
@@ -104,15 +104,15 @@ void ParticleSimulator::integrateSymplectic(double dt)
 		{
 			//	update acceleration based on force over mass
 				//add the remaining nescessary forces to each particle
-			particle.force += -kDrag * (particle.velocity) + particle.mass * gravity;
+			particle.force += -kDrag * (particle.velocity) + glm::dvec3(0.0, particle.mass * gravity, 0.0);
 			
 			// ground collision detection
 			// assuming that ground is zero -> P = (0, 0, 0)
-			if (particle.positionCur[1] <= 0)
+			if (particle.positionCur.y <= 0)
 			{
 				glm::dvec3 groundNormal = { 0.0f,1.0f,0.0f };
 				// handle resolution
-				particle.force += -ksGround * (particle.positionCur[1]) * groundNormal - kdGround * particle.velocity[1] * groundNormal;
+				particle.force += -ksGround * (particle.positionCur.y) * groundNormal - kdGround * particle.velocity.y * groundNormal;
 
 			}
 			particle.acceleration = particle.force / particle.mass;
@@ -147,9 +147,10 @@ void ParticleSimulator::integrateVerlet(double dt)
 	{
 		if (!particle.fixed)
 		{
-			//	update acceleration based on force over mass
-				//add the remaining nescessary forces to each particle
+			// update acceleration based on force over mass
+			// add the remaining nescessary forces to each particle
 			particle.force += -kDrag * (particle.velocity) + glm::dvec3(0.0, particle.mass * gravity, 0.0);
+			
 			// ground collision detection
 			// assuming that ground is zero -> P = (0, 0, 0)
 			if (particle.positionCur[1] <= 0)
@@ -162,11 +163,12 @@ void ParticleSimulator::integrateVerlet(double dt)
 			particle.acceleration = particle.force / particle.mass;
 			
 			//	update new position 
-
-			particle.positionNew = 2.0*particle.positionCur - particle.positionPrev + particle.acceleration * pow(dt,2);
-			animTcl::OutputMessage("position prev is: %f\n", length(particle.positionPrev));
-
-			particle.velocity =  ((particle.positionNew - particle.positionPrev)/ 2.0*dt) ;
+			particle.velocity = ((particle.positionNew - particle.positionPrev) / (2.0 * dt));
+			particle.positionNew = 2.0*particle.positionCur - particle.positionPrev + particle.acceleration * pow(dt,2.0);
+			
+			//particle.positionNew = 2.0 * particle.positionNew - particle.positionCur + particle.acceleration * pow(dt, 2.0);
+			
+			//particle.velocity = ((particle.positionNew - particle.positionPrev)/ (2.0*dt)) ;
 
 		}
 	}
@@ -367,15 +369,20 @@ void ParticleSimulator::display(GLenum mode)
 		// Draw a line between two particles
 		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleA].positionCur));
 		glVertex3dv(glm::value_ptr(particleSys->particles[spring.particleB].positionCur));
-		/*animTcl::OutputMessage("Is loop running?");
-		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleA].positionCur.x, particles->particles[spring.particleA].positionCur.y, particles->particles[spring.particleA].positionCur.z);
-		animTcl::OutputMessage("%f, %f, %f", particles->particles[spring.particleB].positionCur.x, particles->particles[spring.particleB].positionCur.y, particles->particles[spring.particleB].positionCur.z);
-		animTcl::OutputMessage("indeces are");
-		animTcl::OutputMessage("%d, %d", spring.particleA, spring.particleB);*/
+
 	}
 	glEnd();
 
 	glColor3f(0.3, 0.7, 0.1);
+
+	//Draw ground
+	glPushMatrix();
+	// tranlate
+	glTranslated(0, -0.1, 0);
+	//scale
+	glScaled(20, 0.1, 20);
+	glutSolidCube(1);
+	glPopMatrix();
 
 
 	glPopMatrix();

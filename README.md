@@ -24,7 +24,7 @@ This particle system obides exactly to the assignment parameters.
 
 ## Functionality
 My project contains a particle system which is a c++ class that handles everything related to the particles besides movement. The particles are c++ structs.
-The simulator in my project deals with the movement of the particle's based on their spring and other forces. Springs are C++ structs containing the nescessary parameters.
+The simulator in my project deals with the movement of the particles based on their spring and other forces. Springs are C++ structs containing the nescessary parameters.
 
 All of my integrators (verlet, symplectic and euler) are therefore done in the simulator. The simulator also accounts for the user input simulation time vs the system's simulation time. If the user inputs a simulation time that is less than the system's simulation time, then my simulator has to find the remaining difference between the two such that the system's positions update the correct amount of time before display.
 

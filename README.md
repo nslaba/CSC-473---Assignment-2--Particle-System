@@ -15,6 +15,18 @@ Build simple spring-mass particle system on the CPU and a corresponding integrat
 ## Summary
 This particle system obides exactly to the assignment parameters.
 
+The following are particles loaded in the form of a cube and connected by springs:
+
+![Screenshot (9)](https://user-images.githubusercontent.com/77686772/227581450-bea8de0e-c545-4da5-873a-6db9602a5523.png)
+
+The following are many particles randomly loaded:
+
+![Screenshot (11)](https://user-images.githubusercontent.com/77686772/227581964-27a5e9e3-f266-42af-8cbe-af2bcc2f8f90.png)
+
+After the simulation time starts, the particles' behave based on gravity, their damping, stiffness forces and other:
+
+![Screenshot (15)](https://user-images.githubusercontent.com/77686772/227582281-b697ca71-aaca-40f5-aeae-b2996141f620.png)
+
 ## Functionality
 My project contains a particle system which is a c++ class that handles everything related to the particles besides movement. The particles are c++ structs.
 The simulator in my project deals with the movement of the particle's based on their spring and other forces. Springs are C++ structs containing the nescessary parameters.
@@ -22,4 +34,5 @@ The simulator in my project deals with the movement of the particle's based on t
 All of my integrators (verlet, symplectic and euler) are therefore done in the simulator. The simulator also accounts for the user input simulation time vs the system's simulation time. If the user inputs a simulation time that is less than the system's simulation time, then my simulator has to find the remaining difference between the two such that the system's positions update the correct amount of time before display.
 
 
-## Grade received - only submitted now
+## Grade received: 
+100% :)

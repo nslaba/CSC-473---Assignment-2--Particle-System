@@ -17,7 +17,8 @@ This particle system obides exactly to the assignment parameters.
 
 
 
-https://user-images.githubusercontent.com/77686772/227585085-eed4f9ce-54f8-4a57-88bf-f75f95fd2716.mp4
+
+![Untitled video - Made with Clipchamp](https://user-images.githubusercontent.com/77686772/227585340-1cdf512e-19c1-4cee-b159-c6158299128b.gif)
 
 
 

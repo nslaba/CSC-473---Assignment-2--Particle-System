@@ -15,17 +15,11 @@ Build simple spring-mass particle system on the CPU and a corresponding integrat
 ## Summary
 This particle system obides exactly to the assignment parameters.
 
-The following are particles loaded in the form of a cube and connected by springs:
 
-![Screenshot (9)](https://user-images.githubusercontent.com/77686772/227581450-bea8de0e-c545-4da5-873a-6db9602a5523.png)
 
-The following are many particles randomly loaded:
+https://user-images.githubusercontent.com/77686772/227585085-eed4f9ce-54f8-4a57-88bf-f75f95fd2716.mp4
 
-![Screenshot (11)](https://user-images.githubusercontent.com/77686772/227581964-27a5e9e3-f266-42af-8cbe-af2bcc2f8f90.png)
 
-After the simulation time starts, the particles' behaviour is determined based on gravity, their damping, stiffness forces and other:
-
-![Screenshot (15)](https://user-images.githubusercontent.com/77686772/227582281-b697ca71-aaca-40f5-aeae-b2996141f620.png)
 
 ## Functionality
 My project contains a particle system which is a c++ class that handles everything related to the particles besides movement. The particles are c++ structs.

@@ -23,7 +23,7 @@ The following are many particles randomly loaded:
 
 ![Screenshot (11)](https://user-images.githubusercontent.com/77686772/227581964-27a5e9e3-f266-42af-8cbe-af2bcc2f8f90.png)
 
-After the simulation time starts, the particles' behave based on gravity, their damping, stiffness forces and other:
+After the simulation time starts, the particles' behaviour is determined based on gravity, their damping, stiffness forces and other:
 
 ![Screenshot (15)](https://user-images.githubusercontent.com/77686772/227582281-b697ca71-aaca-40f5-aeae-b2996141f620.png)
 
